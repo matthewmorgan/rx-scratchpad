@@ -20,10 +20,19 @@ export function load(url) {
 }
 
 export function loadWithFetch(url){
-  return Observable.defer(()=> Observable.fromPromise(fetch(url).then(r => r.json())));
+  return Observable.defer(()=> {
+    return Observable.fromPromise(
+            fetch(url).then(r => {
+                  if (r.statusCode === 200) {
+                    return r.json();
+                  } else {
+                    return Promise.reject(r);
+                  }
+                })).retryWhen(retryStrategy());
+      });
 }
 
-function retryStrategy({attempts = 4, delay = 1000}){
+function retryStrategy({attempts = 4, delay = 1000} = {}){
   return function(errors){
     return errors.scan((acc, value) => {
       console.log(acc, value);
