@@ -1,20 +1,30 @@
 import {Observable} from "rxjs";
 
 
-let circle = document.getElementById("circle");
-const source = Observable.fromEvent(document, 'mousemove')
-.map(e => ({x: e.clientX, y: e.clientY}))
-.filter(value => value.x < 500)
-.delay(100);
+let button = document.getElementById("button");
+let output = document.getElementById("output");
+
+const click = Observable.fromEvent(button, 'click');
 
 
-function onNext(value) {
-  circle.style.left = value.x;
-  circle.style.top = value.y;
+function load(url) {
+  let xhr = new XMLHttpRequest();
+  xhr.addEventListener("load", () => {
+    let movies = JSON.parse(xhr.responseText);
+    movies.forEach(m => {
+      let div = document.createElement("div");
+      div.innerText = m.title;
+      output.appendChild(div);
+    })
+  });
+
+  xhr.open("GET", url);
+  xhr.send();
 }
 
-source.subscribe(
-  onNext,
+
+click.subscribe(
+  e => load("movies.json"),
   e => console.log(`error: ${e}`),
   () => console.log("complete")
 );
